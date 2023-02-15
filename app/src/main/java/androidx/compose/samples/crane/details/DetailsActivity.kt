@@ -22,6 +22,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -107,7 +108,7 @@ class DetailsActivity : ComponentActivity() {
 
 data class DetailsUiState(
     val cityDetails: ExploreModel? = null,
-    val isLoading: Boolean = false,
+    var isLoading: Boolean = false,
     val throwError: Boolean = false
 )
 
@@ -124,8 +125,8 @@ fun DetailsScreen(
     // } else {
     //     onErrorLoading()
     // }
-
-    val uiState by produceState(initialValue = DetailsUiState(isLoading = true)) {
+    var key by remember { mutableStateOf(true) }
+    val uiState by produceState(initialValue = DetailsUiState(isLoading = true), key1 = key) {
         // In a coroutine, this can call suspend functions or move
         // the computation to different Dispatchers
         val cityDetailsResult = viewModel.cityDetails
@@ -138,7 +139,7 @@ fun DetailsScreen(
 
     when {
         uiState.cityDetails != null -> {
-            DetailsContent(uiState.cityDetails!!, modifier.fillMaxSize())
+            DetailsContent(uiState.cityDetails!!, modifier.fillMaxSize(), click = {key = false})
         }
         uiState.isLoading -> {
             Box(modifier.fillMaxSize()) {
@@ -155,18 +156,19 @@ fun DetailsScreen(
 @Composable
 fun DetailsContent(
     exploreModel: ExploreModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    click: () -> Unit
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.Center) {
         Spacer(Modifier.height(32.dp))
         Text(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            modifier = Modifier.align(Alignment.CenterHorizontally).clickable { click()},
             text = exploreModel.city.nameToDisplay,
             style = MaterialTheme.typography.h4,
             textAlign = TextAlign.Center
         )
         Text(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            modifier = Modifier.align(Alignment.CenterHorizontally).clickable { click()},
             text = exploreModel.description,
             style = MaterialTheme.typography.h6,
             textAlign = TextAlign.Center
